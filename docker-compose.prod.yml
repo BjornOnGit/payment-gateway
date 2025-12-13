@@ -1,0 +1,40 @@
+services:
+  api:
+    image: payment-gateway:api
+    restart: always
+    env_file:
+      - .env.local
+    environment:
+      ENV: production
+      API_PORT: 8080
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_PRIVATE_KEY_PATH: /secrets/jwt_private.pem
+      JWT_PUBLIC_KEY_PATH: /secrets/jwt_public.pem
+      RATE_LIMIT_PER_MIN: 120
+      LOG_SERVICE_NAME: payment-gateway
+    ports:
+      - "8080:8080"
+
+  postgres:
+    image: postgres:13
+    container_name: pg-db
+    restart: always
+    environment:
+      POSTGRES_DB: payments
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: securepassword
+
+  redis:
+    image: redis:7
+    container_name: redis-cache
+    restart: always
+    ports: []
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5673:5672"
+      - "15673:15672"
