@@ -10,7 +10,11 @@ fi
 
 cd $APP_DIR
 
-git pull origin main
+# Fix git ownership issue
+git config --global --add safe.directory $APP_DIR
+
+# No need for git pull since rsync already synced files
+# git pull origin main
 
 docker build -t payment-gateway:api -f deployments/Dockerfile .
 
