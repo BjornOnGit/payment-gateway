@@ -2,22 +2,29 @@ services:
   api:
     image: payment-gateway:api
     restart: always
-    env_file:
-      - .env.local
     environment:
       ENV: production
       API_PORT: 8080
       DB_URL: ${DB_URL}
-      REDIS_URL: ${REDIS_URL}
+      REDIS_URL: redis:6379
       JWT_PRIVATE_KEY_PATH: /secrets/jwt_private.pem
       JWT_PUBLIC_KEY_PATH: /secrets/jwt_public.pem
       RATE_LIMIT_PER_MIN: 120
       LOG_SERVICE_NAME: payment-gateway
     ports:
       - "8080:8080"
+    volumes:
+      - ./dev-certs:/app/dev-certs:ro
+      - ./secrets:/secrets:ro
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
 
   postgres:
     image: postgres:13
+    env_file:
+      - .env.local
     container_name: pg-db
     restart: always
     environment:
