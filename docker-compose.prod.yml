@@ -20,23 +20,27 @@ services:
       - postgres
       - redis
       - rabbitmq
+   networks:
+     - payment-network
 
   postgres:
     image: postgres:13
-    env_file:
-      - .env.local
     container_name: pg-db
     restart: always
     environment:
       POSTGRES_DB: payments
       POSTGRES_USER: gateway
       POSTGRES_PASSWORD: securepassword
+   networks:
+     - payment-network
 
   redis:
     image: redis:7
     container_name: redis-cache
     restart: always
-    ports: []
+     ports: []
+     networks:
+       - payment-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -45,3 +49,9 @@ services:
     ports:
       - "5673:5672"
       - "15673:15672"
+   networks:
+     - payment-network
+
+networks:
+  payment-network:
+    driver: bridge

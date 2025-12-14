@@ -42,6 +42,7 @@ jobs:
         ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} "
           cd /srv/payment-gateway && 
           gunzip -c api-image.tar.gz | docker load &&
-          docker-compose -f docker-compose.prod.yml up -d &&
+           docker compose -f docker-compose.prod.yml down --remove-orphans || true &&
+           docker compose -f docker-compose.prod.yml up -d &&
           docker system prune -f
         "
