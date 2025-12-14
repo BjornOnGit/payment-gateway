@@ -16,13 +16,13 @@ jobs:
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/paymentgateway
-        chmod 600 ~/.ssh/paymentgateway
+        echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
 
     - name: Rsync Project to Droplet
       run: |
-        rsync -avz . ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }}:/srv/payment-gateway
+        rsync -avz --exclude '.git' --exclude 'node_modules' . ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }}:/srv/payment-gateway
 
     - name: Deploy on Droplet
       run: |
