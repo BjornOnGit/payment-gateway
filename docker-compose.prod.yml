@@ -7,6 +7,7 @@ services:
       API_PORT: 8080
       DB_URL: ${DB_URL}
       REDIS_URL: redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       JWT_PRIVATE_KEY_PATH: /secrets/jwt_private.pem
       JWT_PUBLIC_KEY_PATH: /secrets/jwt_public.pem
       RATE_LIMIT_PER_MIN: 120
