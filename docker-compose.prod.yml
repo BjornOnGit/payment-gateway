@@ -20,7 +20,7 @@ services:
       - postgres
       - redis
       - rabbitmq
-   networks:
+  networks:
      - payment-network
 
   postgres:
@@ -31,15 +31,15 @@ services:
       POSTGRES_DB: payments
       POSTGRES_USER: gateway
       POSTGRES_PASSWORD: securepassword
-   networks:
+  networks:
      - payment-network
 
   redis:
     image: redis:7
     container_name: redis-cache
     restart: always
-     ports: []
-     networks:
+   ports: []
+   networks:
        - payment-network
 
   rabbitmq:
@@ -49,7 +49,7 @@ services:
     ports:
       - "5673:5672"
       - "15673:15672"
-   networks:
+  networks:
      - payment-network
 
 networks:
