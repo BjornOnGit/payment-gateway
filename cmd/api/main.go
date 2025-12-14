@@ -188,12 +188,23 @@ func main() {
 		Handler: handler, // Use metrics-wrapped handler
 	}
 
-	go func() {
-		logger.Info("API server running", zap.String("port", port), zap.String("protocol", "https"))
-		if err := server.ListenAndServeTLS(cert, key); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("HTTPS server error", zap.Error(err))
-		}
-	}()
+	// Allow switching between HTTPS (self-signed inside container) and plain HTTP for Nginx TLS termination
+	tlsMode := os.Getenv("API_TLS")
+	if tlsMode == "off" || tlsMode == "false" { // HTTP mode
+		go func() {
+			logger.Info("API server running", zap.String("port", port), zap.String("protocol", "http"))
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatal("HTTP server error", zap.Error(err))
+			}
+		}()
+	} else { // HTTPS mode (default)
+		go func() {
+			logger.Info("API server running", zap.String("port", port), zap.String("protocol", "https"))
+			if err := server.ListenAndServeTLS(cert, key); err != nil && err != http.ErrServerClosed {
+				logger.Fatal("HTTPS server error", zap.Error(err))
+			}
+		}()
+	}
 
 	// Wait for interrupt signal
 	sig := make(chan os.Signal, 1)

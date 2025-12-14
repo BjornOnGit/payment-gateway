@@ -5,6 +5,7 @@ services:
     environment:
       ENV: production
       API_PORT: 8080
+      API_TLS: off
       DB_URL: ${DB_URL}
       REDIS_URL: redis:6379
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
