@@ -30,7 +30,15 @@ jobs:
 
     - name: Copy Image and Files to Droplet
       run: |
-        rsync -avz --exclude '.git' api-image.tar.gz docker-compose.prod.yml deployments/ ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }}:/srv/payment-gateway/
+        # Ensure target directory exists
+        ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} "mkdir -p /srv/payment-gateway"
+        # Rsync whole repo (without .git and local-only dirs) plus the built image
+        rsync -avz \
+          --exclude '.git' \
+          --exclude 'dev-certs' \
+          --exclude 'secrets' \
+          --exclude '.env.local' \
+          api-image.tar.gz ./ ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }}:/srv/payment-gateway/
         # Upload env file if present in GitHub secrets (renamed to .env for compose auto-load)
         if [ -n "${{ secrets.ENV_LOCAL }}" ]; then 
           echo "${{ secrets.ENV_LOCAL }}" > .env
