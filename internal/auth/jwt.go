@@ -22,6 +22,19 @@ type JWTManager struct {
 	expiry     time.Duration
 }
 
+// BuildClaims returns CustomClaims populated with issuer, issued-at, and expiry based on the manager config.
+func (m *JWTManager) BuildClaims(subject, scope string) CustomClaims {
+	return CustomClaims{
+		Subject: subject,
+		Scope:   scope,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    m.issuer,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.expiry)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+}
+
 func NewJWTManager(privateKeyPath, publicKeyPath, issuer string, expiry time.Duration) (*JWTManager, error) {
 	privBytes, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 type RouterConfig struct {
 	TxService        *service.TransactionService
 	SettlementSvc    *service.SettlementService   // optional - if nil, settlement endpoints disabled
+	AuthService      *service.AuthService         // optional - if nil, auth endpoints disabled
 	JWTManager       *auth.JWTManager             // optional - if nil, no auth middleware
 	IdempotencyStore *middleware.IdempotencyStore // optional - if nil, no idempotency middleware
 	OAuthServer      *auth.OAuthServer            // optional - if nil, /oauth/token disabled
@@ -29,6 +30,7 @@ type apiRouter struct {
 	txHandler *handlers.TransactionHandler
 	sHandler  *handlers.SettlementHandler
 	oauthH    *handlers.OAuthHandler
+	authH     *handlers.AuthHandler
 }
 
 func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +46,17 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if path == "/oauth/token" && ar.cfg.OAuthServer != nil {
 		ar.oauthH.Token(w, r)
 		return
+	}
+
+	if ar.authH != nil {
+		if r.Method == http.MethodPost && path == "/auth/register" {
+			ar.authH.Register(w, r)
+			return
+		}
+		if r.Method == http.MethodPost && path == "/auth/login" {
+			ar.authH.Login(w, r)
+			return
+		}
 	}
 
 	// Transaction routes
@@ -144,11 +157,16 @@ func NewRouterWithConfig(cfg RouterConfig) http.Handler {
 	}
 
 	oauthHandler := handlers.NewOAuthHandler(cfg.OAuthServer, cfg.Logger)
+	var authHandler *handlers.AuthHandler
+	if cfg.AuthService != nil {
+		authHandler = handlers.NewAuthHandler(cfg.AuthService, cfg.Logger)
+	}
 
 	return &apiRouter{
 		cfg:       cfg,
 		txHandler: txHandler,
 		sHandler:  sHandler,
 		oauthH:    oauthHandler,
+		authH:     authHandler,
 	}
 }

@@ -54,10 +54,35 @@ func main() {
 
 	logger.Info("postgres connection successful")
 
+	// Optional: Initialize JWT manager for authentication
+	// Only initialize if cert paths are provided
+	var jwtManager *auth.JWTManager
+	privKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
+	pubKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
+
+	if privKeyPath != "" && pubKeyPath != "" {
+		var err error
+		jwtManager, err = auth.NewJWTManager(
+			privKeyPath,
+			pubKeyPath,
+			"payment-gateway",
+			1*time.Hour,
+		)
+		if err != nil {
+			logger.Warn("JWT initialization failed (authentication disabled)", zap.Error(err))
+			jwtManager = nil
+		} else {
+			logger.Info("JWT manager initialized")
+		}
+	} else {
+		logger.Warn("JWT_PRIVATE_KEY_PATH and JWT_PUBLIC_KEY_PATH not set (authentication disabled)")
+	}
+
 	// Initialize repositories
 	txRepo := repo.NewPostgresTransactionRepository(conn)
 	settlementRepo := repo.NewPostgresSettlementRepository(conn)
 	accountRepo := repo.NewPostgresAccountRepository(conn)
+	userRepo := repo.NewPostgresUserRepository(conn)
 
 	// Initialize RabbitMQ bus
 	rabbitmqURL := os.Getenv("RABBITMQ_URL")
@@ -75,6 +100,11 @@ func main() {
 	txService := service.NewTransactionService(txRepo, msgBus)
 	routingService := service.NewRoutingService(txRepo, msgBus)
 	settlementService := service.NewSettlementService(txRepo, settlementRepo, accountRepo, msgBus, logger)
+
+	var authService *service.AuthService
+	if jwtManager != nil {
+		authService = service.NewAuthService(userRepo, jwtManager)
+	}
 
 	// Start transaction-worker subscriber
 	startTransactionWorker(ctx, routingService, msgBus, logger)
@@ -102,30 +132,6 @@ func main() {
 		idempStore = &middleware.IdempotencyStore{Redis: rdb, TTL: 24 * time.Hour}
 	}
 
-	// Optional: Initialize JWT manager for authentication
-	// Only initialize if cert paths are provided
-	var jwtManager *auth.JWTManager
-	privKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
-	pubKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
-
-	if privKeyPath != "" && pubKeyPath != "" {
-		var err error
-		jwtManager, err = auth.NewJWTManager(
-			privKeyPath,
-			pubKeyPath,
-			"payment-gateway",
-			1*time.Hour,
-		)
-		if err != nil {
-			logger.Warn("JWT initialization failed (authentication disabled)", zap.Error(err))
-			jwtManager = nil
-		} else {
-			logger.Info("JWT manager initialized")
-		}
-	} else {
-		logger.Warn("JWT_PRIVATE_KEY_PATH and JWT_PUBLIC_KEY_PATH not set (authentication disabled)")
-	}
-
 	// Dev-only OAuth server (client registry in-memory)
 	var oauthServer *auth.OAuthServer
 	if jwtManager != nil {
@@ -149,6 +155,7 @@ func main() {
 	router := api.NewRouterWithConfig(api.RouterConfig{
 		TxService:        txService,
 		SettlementSvc:    settlementService,
+		AuthService:      authService,
 		JWTManager:       jwtManager,
 		IdempotencyStore: idempStore,
 		OAuthServer:      oauthServer,
