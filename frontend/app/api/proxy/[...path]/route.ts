@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server'
 import { API_BASE_URL } from '../../../../lib/config'
 
 async function proxy(req: Request, segments: string[]) {
-  const token = cookies().get('access_token')?.value
+  const cookieStore = await cookies()
+  const token = cookieStore.get('access_token')?.value
   const url = `${API_BASE_URL}/${segments.join('/')}`
 
   const init: RequestInit = {
@@ -22,15 +23,31 @@ async function proxy(req: Request, segments: string[]) {
   return new NextResponse(data, { status: resp.status, headers: resp.headers })
 }
 
-export async function GET(req: Request, { params }: { params: { path: string[] } }) {
-  return proxy(req, params.path)
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const resolved = await params
+  return proxy(req, resolved.path)
 }
-export async function POST(req: Request, { params }: { params: { path: string[] } }) {
-  return proxy(req, params.path)
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const resolved = await params
+  return proxy(req, resolved.path)
 }
-export async function PUT(req: Request, { params }: { params: { path: string[] } }) {
-  return proxy(req, params.path)
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const resolved = await params
+  return proxy(req, resolved.path)
 }
-export async function DELETE(req: Request, { params }: { params: { path: string[] } }) {
-  return proxy(req, params.path)
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const resolved = await params
+  return proxy(req, resolved.path)
 }

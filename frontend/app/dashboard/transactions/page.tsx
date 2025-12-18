@@ -13,7 +13,10 @@ type Transaction = {
 export default function TransactionsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['transactions'],
-    queryFn: async () => (await api.get('/transactions')).data as Transaction[],
+    queryFn: async () => {
+      const res = await api.get('/v1/transactions/list')
+      return res.data.data as Transaction[]
+    },
   })
 
   if (isLoading) return <div className="p-6">Loading...</div>

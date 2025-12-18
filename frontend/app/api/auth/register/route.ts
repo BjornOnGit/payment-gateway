@@ -44,9 +44,10 @@ export async function POST(req: Request) {
   const token = data.access_token || data.token || ''
   const response = NextResponse.json({ ok: true, user: data.user })
   if (token) {
+    const isProduction = process.env.NODE_ENV === 'production'
     response.cookies.set('access_token', token, {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60, // 1h

@@ -13,7 +13,10 @@ type Settlement = {
 export default function SettlementsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['settlements'],
-    queryFn: async () => (await api.get('/settlements')).data as Settlement[],
+    queryFn: async () => {
+      const res = await api.get('/v1/settlements/list')
+      return res.data.data as Settlement[]
+    },
   })
 
   if (isLoading) return <div className="p-6">Loading...</div>
