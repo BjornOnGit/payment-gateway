@@ -16,30 +16,35 @@ A production-ready payment gateway system built with Go, featuring asynchronous 
 ### Services
 
 1. **API Server** (`cmd/api`)
-	- REST API for transaction creation
-	- JWT authentication
-	- Publishes events to RabbitMQ
 
-2. **Transaction Worker** (`cmd/transaction-worker`)
-	- Processes `transaction.created` events
-	- Routes to appropriate payment provider
-	- Publishes `settlement.requested` events
+- REST API for transaction creation
+- JWT authentication
+- Publishes events to RabbitMQ
 
-3. **Settlement Worker** (`cmd/settlement-worker`)
-	- Processes `settlement.requested` events
-	- Creates settlement records
-	- Automatic retry on failure (max 3 attempts)
-	- Routes permanent failures to DLQ
+1. **Transaction Worker** (`cmd/transaction-worker`)
 
-4. **DLQ Monitor** (`cmd/dlq-monitor`)
-	- Monitors dead letter queue
-	- Logs permanently failed settlements
-	- Foundation for manual intervention
+- Processes `transaction.created` events
+- Routes to appropriate payment provider
+- Publishes `settlement.requested` events
 
-5. **Reconciliation Job** (`cmd/reconcile-job`)
-	- Batch job for settlement reconciliation
-	- Detects transaction vs settlement mismatches
-	- Webhook notifications
+1. **Settlement Worker** (`cmd/settlement-worker`)
+
+- Processes `settlement.requested` events
+- Creates settlement records
+- Automatic retry on failure (max 3 attempts)
+- Routes permanent failures to DLQ
+
+1. **DLQ Monitor** (`cmd/dlq-monitor`)
+
+- Monitors dead letter queue
+- Logs permanently failed settlements
+- Foundation for manual intervention
+
+2. **Reconciliation Job** (`cmd/reconcile-job`)
+
+- Batch job for settlement reconciliation
+- Detects transaction vs settlement mismatches
+- Webhook notifications
 
 ### Message Flow
 
@@ -331,9 +336,17 @@ docker exec rabbitmq rabbitmqctl delete_exchange settlement.requested
 4. Add tests
 5. Submit a pull request
 
+### Why Contribute
+- Impact: Help shape a production-style payment gateway with async processing, DLQ, and reconciliation flows.
+- Learning: Build real-world experience with Go, RabbitMQ, and a modern Next.js frontend.
+- Collaboration: Improve reliability, docs, and test coverage alongside maintainers.
+- Recognition: Meaningful contributions are acknowledged; maintainership is open over time.
+
+More details: see [CONTRIBUTING.md](CONTRIBUTING.md), [CODE OF CONDUCT.md](CODE%20OF%20CONDUCT.md), and [SECURITY.md](SECURITY.md).
+
 ## License
 
-[Add your license here]
+[LICENSE](LICENSE)
 
 ## Support
 
@@ -341,3 +354,18 @@ For issues and questions:
 - Check the [documentation](docs/)
 - Review [troubleshooting guide](#troubleshooting)
 - Open an issue on GitHub
+
+## Documentation Index
+- [docs/ALERT_CHECKLIST.md](docs/ALERT_CHECKLIST.md)
+- [docs/ALERT_IMPLEMENTATION_SUMMARY.md](docs/ALERT_IMPLEMENTATION_SUMMARY.md)
+- [docs/ALERT_QUICKSTART.md](docs/ALERT_QUICKSTART.md)
+- [docs/ALERT_SYSTEM.md](docs/ALERT_SYSTEM.md)
+- [docs/DLQ_CHECKLIST.md](docs/DLQ_CHECKLIST.md)
+- [docs/DLQ_FLOW_DIAGRAM.md](docs/DLQ_FLOW_DIAGRAM.md)
+- [docs/DLQ_IMPLEMENTATION.md](docs/DLQ_IMPLEMENTATION.md)
+- [docs/DLQ_SUMMARY.md](docs/DLQ_SUMMARY.md)
+- [docs/METRICS_CHECKLIST.md](docs/METRICS_CHECKLIST.md)
+- [docs/METRICS_INTEGRATION.md](docs/METRICS_INTEGRATION.md)
+- [docs/METRICS_QUICKSTART.md](docs/METRICS_QUICKSTART.md)
+- [docs/POSTMAN_COLLECTION_GUIDE.md](docs/POSTMAN_COLLECTION_GUIDE.md)
+- [docs/POSTMAN_FIXES.md](docs/POSTMAN_FIXES.md)
